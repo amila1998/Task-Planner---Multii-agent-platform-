@@ -1,0 +1,9 @@
+langgraph
+langchain
+langchain-community
+pydantic
+fastapi
+uvicorn
+httpx
+pytest
+typing-extensions

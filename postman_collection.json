@@ -1,0 +1,255 @@
+{
+  "info": {
+    "name": "Multi-Agent Workflow API",
+    "description": "multi-agent system for software workflow automation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Verify the API server is running."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"status\": \"ok\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Run Workflow – Ollama (live inference, with fallback)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requirement\": \"Build a login system with validation and error handling\",\n  \"model\": \"llama3\",\n  \"ollama_base_url\": \"http://localhost:11434\",\n  \"fallback_to_template\": true\n}",
+          "options": {
+            "raw": { "language": "json" }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/workflow/run",
+          "host": ["{{base_url}}"],
+          "path": ["workflow", "run"]
+        },
+        "description": "Trigger the full multi-agent workflow. Tries live Ollama inference first; if Ollama is unreachable or times out, falls back to the template generator and still returns status: completed. Requires `docker compose up -d` and `ollama pull llama3` for live inference."
+      },
+      "response": [
+        {
+          "name": "200 Completed – Ollama live inference",
+          "status": "OK",
+          "code": 200,
+          "originalRequest": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requirement\": \"Build a login system with validation and error handling\",\n  \"model\": \"llama3\",\n  \"ollama_base_url\": \"http://localhost:11434\",\n  \"fallback_to_template\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/workflow/run",
+              "host": ["{{base_url}}"],
+              "path": ["workflow", "run"]
+            }
+          },
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"workflow\": {\n    \"user_input\": \"Build a login system with validation and error handling\",\n    \"planned_tasks\": [\n      { \"id\": \"1\", \"title\": \"Build a login system with validation\", \"description\": \"Complete: Build a login system with validation\" },\n      { \"id\": \"2\", \"title\": \"Error handling\", \"description\": \"Complete: error handling\" }\n    ],\n    \"generated_output\": \"# Generated Implementation Plan\\n...\",\n    \"generation_source\": \"ollama\",\n    \"validation_result\": {\n      \"valid\": true,\n      \"score\": 6,\n      \"max_score\": 6,\n      \"checks\": {},\n      \"failed_checks\": [],\n      \"task_mentions\": 2,\n      \"message\": \"Validation completed\"\n    },\n    \"status\": \"completed\",\n    \"errors\": []\n  }\n}"
+        },
+        {
+          "name": "200 Completed – template_fallback (Ollama timed out)",
+          "status": "OK",
+          "code": 200,
+          "originalRequest": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requirement\": \"Build a login system with validation and error handling\",\n  \"model\": \"llama3\",\n  \"ollama_base_url\": \"http://localhost:11434\",\n  \"fallback_to_template\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/workflow/run",
+              "host": ["{{base_url}}"],
+              "path": ["workflow", "run"]
+            }
+          },
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"workflow\": {\n    \"user_input\": \"Build a login system with validation and error handling\",\n    \"planned_tasks\": [\n      { \"id\": \"1\", \"title\": \"Build a login system with validation\", \"description\": \"Complete: Build a login system with validation\" },\n      { \"id\": \"2\", \"title\": \"Error handling\", \"description\": \"Complete: error handling\" }\n    ],\n    \"generated_output\": \"# Generated Implementation Plan\\n...\",\n    \"generation_source\": \"template_fallback\",\n    \"validation_result\": {\n      \"valid\": true,\n      \"score\": 6,\n      \"max_score\": 6,\n      \"checks\": {},\n      \"failed_checks\": [],\n      \"task_mentions\": 2,\n      \"message\": \"Validation completed\"\n    },\n    \"status\": \"completed\",\n    \"errors\": [\"Ollama generation failed: timed out\"]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Run Workflow – No fallback (strict Ollama failure)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requirement\": \"Build a login system with validation and error handling\",\n  \"model\": \"llama3\",\n  \"ollama_base_url\": \"http://localhost:11434\",\n  \"fallback_to_template\": false\n}",
+          "options": {
+            "raw": { "language": "json" }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/workflow/run",
+          "host": ["{{base_url}}"],
+          "path": ["workflow", "run"]
+        },
+        "description": "Strict mode: if Ollama is unreachable or times out, the workflow stops immediately and returns status: failed with generation_source: ollama_failed. No template fallback."
+      },
+      "response": [
+        {
+          "name": "200 Failed – Ollama unreachable (no fallback)",
+          "status": "OK",
+          "code": 200,
+          "originalRequest": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requirement\": \"Build a login system with validation and error handling\",\n  \"model\": \"llama3\",\n  \"ollama_base_url\": \"http://localhost:11434\",\n  \"fallback_to_template\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/workflow/run",
+              "host": ["{{base_url}}"],
+              "path": ["workflow", "run"]
+            }
+          },
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"workflow\": {\n    \"user_input\": \"Build a login system with validation and error handling\",\n    \"planned_tasks\": [\n      { \"id\": \"1\", \"title\": \"Build a login system with validation\", \"description\": \"Complete: Build a login system with validation\" },\n      { \"id\": \"2\", \"title\": \"Error handling\", \"description\": \"Complete: error handling\" }\n    ],\n    \"generated_output\": null,\n    \"validation_result\": null,\n    \"status\": \"failed\",\n    \"errors\": [\"Ollama generation failed: timed out\"],\n    \"generation_source\": \"ollama_failed\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Run Workflow – Template fallback",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requirement\": \"Build a REST API for user registration and authentication\",\n  \"model\": \"llama3\",\n  \"ollama_base_url\": \"http://localhost:11434\",\n  \"fallback_to_template\": true\n}",
+          "options": {
+            "raw": { "language": "json" }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/workflow/run",
+          "host": ["{{base_url}}"],
+          "path": ["workflow", "run"]
+        },
+        "description": "Same workflow with template fallback enabled. If Ollama is unreachable, generation falls back to a structured Markdown template."
+      },
+      "response": []
+    },
+    {
+      "name": "Run Workflow – Alternative model (phi3)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requirement\": \"Design and implement a microservices architecture for an e-commerce platform\",\n  \"model\": \"phi3\",\n  \"ollama_base_url\": \"http://localhost:11434\",\n  \"fallback_to_template\": true\n}",
+          "options": {
+            "raw": { "language": "json" }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/workflow/run",
+          "host": ["{{base_url}}"],
+          "path": ["workflow", "run"]
+        },
+        "description": "Use a different local model (phi3). Run `ollama pull phi3` before testing this request."
+      },
+      "response": []
+    },
+    {
+      "name": "Run Workflow – Empty requirement (400 error)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requirement\": \"   \",\n  \"fallback_to_template\": true\n}",
+          "options": {
+            "raw": { "language": "json" }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/workflow/run",
+          "host": ["{{base_url}}"],
+          "path": ["workflow", "run"]
+        },
+        "description": "Validates that an empty/whitespace requirement is rejected with HTTP 400."
+      },
+      "response": [
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "originalRequest": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requirement\": \"   \",\n  \"fallback_to_template\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/workflow/run",
+              "host": ["{{base_url}}"],
+              "path": ["workflow", "run"]
+            }
+          },
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"detail\": \"Requirement cannot be empty\"\n}"
+        }
+      ]
+    }
+  ]
+}
