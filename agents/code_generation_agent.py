@@ -15,11 +15,13 @@ class CodeGenerationAgent:
         ollama_base_url: str = "http://localhost:11434",
         model: str = "llama3",
         fallback_to_template: bool = True,
+        request_timeout_seconds: int = 180,
     ) -> None:
         self.name = name
         self.ollama_base_url = ollama_base_url.rstrip("/")
         self.model = model
         self.fallback_to_template = fallback_to_template
+        self.request_timeout_seconds = request_timeout_seconds
 
     def _build_prompt(self, state: WorkflowState) -> str:
         lines = [
@@ -53,7 +55,7 @@ class CodeGenerationAgent:
             method="POST",
         )
 
-        with urlopen(request, timeout=60) as response:
+        with urlopen(request, timeout=self.request_timeout_seconds) as response:
             body = response.read().decode("utf-8")
             result = json.loads(body)
             output = result.get("response", "").strip()

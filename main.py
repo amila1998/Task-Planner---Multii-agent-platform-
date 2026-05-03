@@ -23,6 +23,7 @@ def execute_workflow(
     ollama_model: str = "llama3",
     ollama_base_url: str = "http://localhost:11434",
     fallback_to_template: bool = True,
+    ollama_timeout_seconds: int = 180,
     output_path: Optional[str] = "outputs/generated_plan.md",
 ) -> WorkflowState:
     """Run the full multi-agent workflow and return the final state."""
@@ -33,6 +34,7 @@ def execute_workflow(
         model=ollama_model,
         ollama_base_url=ollama_base_url,
         fallback_to_template=fallback_to_template,
+        request_timeout_seconds=ollama_timeout_seconds,
     )
     validator = ValidationAgent()
 

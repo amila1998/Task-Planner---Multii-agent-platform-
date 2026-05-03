@@ -14,6 +14,7 @@ class WorkflowRequest(BaseModel):
     model: str = Field(default="llama3")
     ollama_base_url: str = Field(default="http://localhost:11434")
     fallback_to_template: bool = Field(default=True)
+    ollama_timeout_seconds: int = Field(default=180, ge=1)
 
 
 class WorkflowResponse(BaseModel):
@@ -35,6 +36,7 @@ def run_workflow(request: WorkflowRequest) -> WorkflowResponse:
         ollama_model=request.model,
         ollama_base_url=request.ollama_base_url,
         fallback_to_template=request.fallback_to_template,
+        ollama_timeout_seconds=request.ollama_timeout_seconds,
         output_path="outputs/generated_plan_api.md",
     )
 
